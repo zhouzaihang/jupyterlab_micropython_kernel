@@ -41,7 +41,7 @@ connect serial connection
 
 eg:
 ```jupyter
-%serialconnect /dev/ttyUSB0 115200
+%serialconnect --port=/dev/ttyUSB0 --baudrate=115200
 ```
 
 ### %disconnect [--raw]

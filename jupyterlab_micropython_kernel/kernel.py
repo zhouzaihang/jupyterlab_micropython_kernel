@@ -5,7 +5,8 @@ import os
 import re
 import shlex
 import time
-
+import nbconvert
+import nbformat
 import websocket  # only for WebSocketConnectionClosedException
 from ipykernel.kernelbase import Kernel
 
@@ -53,6 +54,13 @@ ap_send_to_file.add_argument('--source', help="source file", type=str, default="
 ap_send_to_file.add_argument('--quiet', '-q', action='store_true')
 ap_send_to_file.add_argument('--QUIET', '-Q', action='store_true')
 ap_send_to_file.add_argument('destinationfilename', type=str, nargs="?")
+
+ap_upload_main = argparse.ArgumentParser(prog="%uploadmain",
+                                         description="upload file(.py/.ipynb) as 'main.py' to the microcontroller's "
+                                                     "file system",
+                                         add_help=False)
+ap_upload_main.add_argument('--source', help='source file(.py/.ipynb)', type=str)
+ap_upload_main.add_argument('--reboot', '-r', help='reboot after uploaded', default="True", action='store_true')
 
 ap_ls = argparse.ArgumentParser(prog="%ls", description="list directory of the microcontroller's file system",
                                 add_help=False)
@@ -283,6 +291,8 @@ class MicroPythonKernel(Kernel):
             self.sres("%rebootdevice\n    reboots device\n\n")
             self.sres(re.sub("usage: ", "", ap_send_to_file.format_usage()))
             self.sres("    send cell contents or file/direcectory to the device\n\n")
+            self.sres(re.sub("usage: ","", ap_upload_main.format_usage()))
+            self.sres("    convert a .py or .ipynb file to a main.py and upload it\n\n")
             self.sres(re.sub("usage: ", "", ap_serial_connect.format_usage()))
             self.sres("    connects to a device over USB wire\n\n")
             self.sres(re.sub("usage: ", "", ap_socket_connect.format_usage()))
@@ -370,8 +380,8 @@ class MicroPythonKernel(Kernel):
             self.sres("Did you mean %rebootdevice?\n", 31)
             return None
 
-        if percentcommand in ("%savetofile", "%savefile", "%sendfile"):
-            self.sres("Did you mean to write %send_to_file?\n", 31)
+        if percentcommand in ("%savetofile", "%savefile", "%send_file"):
+            self.sres("Did you mean to write %sendfile?\n", 31)
             return None
 
         if percentcommand in ("%readfile", "%fetchfromfile"):
@@ -454,12 +464,12 @@ class MicroPythonKernel(Kernel):
                     if os.path.isfile(apargs.source):
                         file_contents = open(apargs.source, mode).read()
                         if apargs.execute:
-                            self.sres("Cannot excecute sourced file\n", 31)
+                            self.sres("Cannot execute sourced file\n", 31)
                         send_to_file(dest_file_name, file_contents)
 
                     elif os.path.isdir(apargs.source):
                         if apargs.execute:
-                            self.sres("Cannot excecute folder\n", 31)
+                            self.sres("Cannot execute folder\n", 31)
                         for root, dirs, files in os.walk(apargs.source):
                             for fn in files:
                                 skip = False
@@ -476,7 +486,39 @@ class MicroPythonKernel(Kernel):
             else:
                 self.sres(ap_send_to_file.format_help())
             return cell_contents  # allows for repeat %send_to_file in same cell
+        if percentcommand == ap_upload_main.prog:
+            apargs = parse_ap(ap_upload_main, percentstringargs[1:])
+            if apargs:
+                source = apargs.source if apargs.source else "main.ipynb"
+                if os.path.isfile(source):
+                    if source.endswith(".ipynb"):
+                        notebook = nbformat.read(source, as_version=4)
+                        py_exporter = nbconvert.PythonExporter()
 
+                        output, resources = py_exporter.from_notebook_node(notebook)
+                        file_contents = output.replace("get_ipython().run_line_magic", "# %")
+                    elif source.endswith(".py"):
+                        file_contents = open(source, "r").read()
+                    else:
+                        self.sres("file must .py or .ipynb")
+                        return None
+                    self.sres(file_contents)
+                    self.dc.send_to_file("main.py",
+                                         mkdir=False,
+                                         append=False,
+                                         binary=False,
+                                         quiet=True,
+                                         file_contents= file_contents)
+                    if apargs.reboot:
+                        self.dc.send_reboot_message()
+                        self.dc.enter_paste_mode()
+                        return cell_contents.strip() and cell_contents or None
+                else:
+                    self.sres("'{0}' is not a file\n\n".format(source))
+                    self.sres(ap_upload_main.format_help())
+            else:
+                self.sres(ap_upload_main.format_help())
+            return None
         self.sres("Unrecognized percentline {}\n".format([percent_line]), 31)
         return cell_contents
 

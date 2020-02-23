@@ -390,10 +390,10 @@ class DeviceConnector:
                     working_device_write('try:  os.mkdir({})\r\n'.format(repr("/".join(dseq[:i + 1]))).encode())
                     working_device_write(b'except OSError:  pass\r\n')
 
-        fmodifier = ("a" if append else "w") + ("b" if binary else "")
+        file_modifier = ("a" if append else "w") + ("b" if binary else "")
         if binary:
             working_device_write(b"import ubinascii; O6 = ubinascii.a2b_base64\r\n")
-        working_device_write("O=open({}, '{}')\r\n".format(repr(destination_filename), fmodifier).encode())
+        working_device_write("O=open({}, '{}')\r\n".format(repr(destination_filename), file_modifier).encode())
         working_device_write(b'\r\x04')  # intermediate execution
         self.receive_stream(seek_okay=True)
         clear_output = True  # set this to False to help with debugging

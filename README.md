@@ -99,7 +99,8 @@ convert a .py or .ipynb file to a main.py and upload it
 
 ```jupyter
 %uploadmain
-%uploadmain dht11.ipynb
+
+%uploadmain --source dht11.ipynb
 ```
 
 
@@ -114,6 +115,5 @@ convert a .py or .ipynb file to a main.py and upload it
 ## Background
 This JupyterLab MicroPython Kernel is heavily based on the amazing work done on https://github.com/goatchurchprime/jupyter_micropython_kernel
 
-Their device connection library has been replaced by upydevice latest classes SERIAL_DEVICE and WS_DEVICE that allows both serial and websocket (WebREPL) connections.
 The kernel has also been reworked to support autocompletions on tab which works for MicroPython, iPython and %cell magic commands.
 Some %cell magic commands were dropped and some new were added e.g: %remove %rmdir %uploadmain

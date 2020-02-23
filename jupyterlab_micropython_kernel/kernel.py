@@ -67,6 +67,8 @@ ap_ls = argparse.ArgumentParser(prog="%ls", description="list directory of the m
 ap_ls.add_argument('--recurse', '-r', action='store_true')
 ap_ls.add_argument('dirname', type=str, nargs="?")
 
+ap_meminfo = argparse.ArgumentParser(prog="%meminfo", add_help=False)
+
 ap_remove = argparse.ArgumentParser(prog="%remove",
                                     description="remove a file of the microcontroller's file system",
                                     add_help=False)
@@ -279,6 +281,8 @@ class MicroPythonKernel(Kernel):
             self.sres("    fetch and save a file from the device\n\n")
             self.sres(re.sub("usage: ", "", ap_ls.format_usage()))
             self.sres("    list files on the device\n\n")
+            self.sres(re.sub("usage: ","", ap_meminfo.format_usage()))
+            self.sres("    show RAM size/used/free/use% info\n\n")
             self.sres(re.sub("usage: ", "", ap_remove.format_usage()))
             self.sres("    remove file on the device\n\n")
             self.sres(re.sub("usage: ", "", ap_rmdir.format_usage()))
@@ -420,6 +424,14 @@ class MicroPythonKernel(Kernel):
                 self.dc.listdir(apargs.dirname or "", apargs.recurse)
             else:
                 self.sres(ap_ls.format_help())
+            return None
+
+        if percentcommand == ap_meminfo.prog:
+            apargs = parse_ap(ap_meminfo, percentstringargs[1:])
+            if apargs:
+                self.dc.mem_info()
+            else:
+                self.sres(ap_meminfo.format_help())
             return None
 
         if percentcommand == ap_remove.prog:

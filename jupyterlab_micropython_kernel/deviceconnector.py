@@ -515,6 +515,29 @@ class DeviceConnector:
                 ld.extend(self.working_device_list_dir(working_device_write, d))
         return None
 
+    def mem_info(self):
+        working_device_write = self.working_serial.write if self.working_serial else self.working_websocket.send
+        working_device_write(b"from micropython import mem_info\r\n")
+        working_device_write(b"import sys\r\n")
+        working_device_write(b"mem_info()\r\n")
+        working_device_write(b'\r\x04')
+        ram = self.receive_stream(seek_okay=True, fetch_file_capture_chunks=-1)
+        assert type(ram) != bool
+        # self.sres(str(ram))
+        mem_info = ram[1]
+        mem = {elem.strip().split(':')[0]: int(elem.strip().split(':')[1]) for elem in mem_info[4:].split(',')}
+        total_mem = mem['total'] / 1024
+        used_mem = mem['used'] / 1024
+        free_mem = mem['free'] / 1024
+        total_mem_s = "{:.3f} KB".format(total_mem)
+        used_mem_s = "{:.3f} KB".format(used_mem)
+        free_mem_s = "{:.3f} KB".format(free_mem)
+        self.sres("{0:12}{1:^12}{2:^12}{3:^12}{4:^12}\n".format(*['Memmory','Size', 'Used','Avail','Use%']))
+        self.sres('{0:12}{1:^12}{2:^12}{3:^12}{4:>8}\n'.format('RAM', total_mem_s,
+                                                               used_mem_s, free_mem_s,
+                                                               "{:.1f} %".format((used_mem / total_mem) * 100)))
+        return None
+
     def remove_file(self, filename):
         self.sres("Delete file: '%s'.\n" % filename)
         working_device_write = self.working_serial.write if self.working_serial else self.working_websocket.send

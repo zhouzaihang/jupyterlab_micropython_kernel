@@ -50,7 +50,7 @@ disconnects from web/serial connection
 
 eg:
 ```jupyter
-%disconnects
+%disconnect
 ```
 
 ### %ls [--recurse] [dirname]
@@ -89,6 +89,7 @@ list all magic commands
 
 soft reboots device
 
+eg:
 ```jupyter
 %rebootdevice
 ```
@@ -97,12 +98,24 @@ soft reboots device
 
 convert a .py or .ipynb file to a main.py and upload it
 
+eg:
 ```jupyter
 %uploadmain
 
 %uploadmain --source dht11.ipynb
 ```
 
+### %meminfo
+    
+show RAM size/used/free/use% info
+
+eg:
+```jupyter
+%meminfo
+
+Memmory         Size        Used       Avail        Use%    
+RAM          116.188 KB   7.859 KB   108.328 KB    6.8 %
+```
 
 ## TODO
 1. Add %uploadproject: convert all .ipynb to .py and upload to device.

@@ -116,12 +116,27 @@ eg:
 Memmory         Size        Used       Avail        Use%    
 RAM          116.188 KB   7.859 KB   108.328 KB    6.8 %
 ```
+## Q&A
+
+1. interrupt endless code in jupyterlab:
+    
+    If you run endless loop code in Jupyter Lab, you can abort the run through the Interrupt Kernel.(`menu->Kernel->Interrupt Kernel` or `Keyboard shortcut: (i, i)`)
+    eg:
+    
+    ```jupyter
+    import utime
+    while True:
+        print("Hello")
+        utime.sleep(1)
+    ```
+
+    click `menu->Kernel->Interrupt Kernel` or press on `Keyboard shortcut: (i, i)`
 
 ## TODO
 1. Add %uploadproject: convert all .ipynb to .py and upload to device.
 1. Writing user manuals.
 1. Make some demo.
-1. Add %meminfo: Shows RAM size/used/free/use% info.
+1. ~~Add %meminfo: Shows RAM size/used/free/use% info.~~
 1. Fix bug.
 1. ...
 

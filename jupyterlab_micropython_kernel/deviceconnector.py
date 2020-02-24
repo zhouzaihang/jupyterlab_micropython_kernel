@@ -320,7 +320,8 @@ class DeviceConnector:
                     if five_second_timeout:
                         self.sres("[Timed out waiting for recognizable response]\n", 31)
                         return False
-                    self.sres(".")  # dot holding position to prove it's alive
+                    # str holding position to prove it's alive
+                    self.sres("\n[Waiting for the program to finish]\n\n")
 
                 elif receive_line == b'Type "help()" for more information.\r\n':
                     reboot_detected = True
@@ -568,8 +569,11 @@ class DeviceConnector:
         working_device_write(b"    rmdir(f)\r\n")
         working_device_write(b"  for f in os.listdir():\r\n")
         working_device_write(b"    rmdir(f)\r\n")
-        working_device_write(b"  os.chdir('..')\r\n")
-        working_device_write(b"  os.rmdir(dir)\r\n")
+        working_device_write(b"  try:\r\n")
+        working_device_write(b"    os.chdir('..')\r\n")
+        working_device_write(b"    os.rmdir(dir)\r\n")
+        working_device_write(b"  except OSError:\r\n")
+        working_device_write(b"    pass\r\n")
         working_device_write(("rmdir(%s)\r\n" % repr(directory)).encode())
         working_device_write(b'\r\x04')
         self.receive_stream(True)
@@ -641,6 +645,10 @@ class DeviceConnector:
             working_socket_written = self.working_socket.write(bytes_to_send)
             return "serial.write {} bytes to {}\n".format(working_socket_written, str(self.working_socket))
 
+    # def terminate_running(self):
+    #     self.write_bytes(b"\x03\x03")
+    #     self.sres(str(self.working_serial_readall()))
+    #     return None
     def send_reboot_message(self):
         if self.working_serial:
             self.working_serial.write(b"\x03\r")  # quit any running program

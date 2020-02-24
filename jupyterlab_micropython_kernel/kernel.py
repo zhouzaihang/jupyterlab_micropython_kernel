@@ -69,6 +69,7 @@ ap_upload_project = argparse.ArgumentParser(prog="%uploadproject",
 ap_upload_project.add_argument('--source', help='project source directory', type=str, default=".")
 ap_upload_project.add_argument('--reboot', '-r', help='soft reboot after uploaded', action='store_true')
 ap_upload_project.add_argument('--emptydevice', '-e', help='empty device before uploaded', action='store_true')
+ap_upload_project.add_argument('--onlypy', '-py', help='Only upload all .py and .ipynb files', action='store_true')
 
 ap_ls = argparse.ArgumentParser(prog="%ls", description="list directory of the microcontroller's file system",
                                 add_help=False)
@@ -537,7 +538,7 @@ class MicroPythonKernel(Kernel):
                     return None
                 if apargs.emptydevice:
                     self.dc.remove_dir(".")
-                self.upload_dir(apargs.source)
+                self.upload_dir(apargs.source, apargs.onlypy)
                 if apargs.reboot:
                     self.dc.send_reboot_message()
                     self.dc.enter_paste_mode()
@@ -570,10 +571,13 @@ class MicroPythonKernel(Kernel):
         else:
             self.sres("'{0}' is not a file\n\n".format(source))
 
-    def upload_dir(self, source):
+    def upload_dir(self, source, onlypy):
         if os.path.exists(source) and os.path.isdir(source):
             for root, dirs, files in os.walk(source, topdown=False):
-                files = [f for f in files if not f[0] == '.']
+                if onlypy:
+                    files = [f for f in files if (not f[0] == '.') and (f.endswith('.py') or f.endswith('.ipynb'))]
+                else:
+                    files = [f for f in files if not f[0] == '.']
                 for f in files:
                     self.upload_file(os.path.join(root, f), mkdir=True, binary=f.endswith(".mpy"), root=source)
         else:

@@ -128,7 +128,7 @@ eg upload and soft reboot:
 %uploadmain --source lib/main.ipynb -r
 ```
 
-### %uploadproject [-h] [--source SOURCE] [--reboot] [--emptydevice]
+### %uploadproject [-h] [--source SOURCE] [--reboot] [--emptydevice] [--onlypy]
 
 Upload all files in the specified folder to the microcontroller's file system while convert all .ipynb files to .py files
 
@@ -148,6 +148,12 @@ eg. remove all file in the divice before upload
 
 ```jupyter
 %uploadproject --source dht11 -e
+```
+
+eg. only upload .py or .ipynb files to the device
+
+```jupyter
+%uploadproject --source dht11 -r -e -py
 ```
 
 ### %meminfo

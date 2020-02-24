@@ -554,7 +554,7 @@ class MicroPythonKernel(Kernel):
         if os.path.exists(source) and os.path.isfile(source):
             destination = source
             root_len = len(root)
-            if root_len+1 < len(source) and source[:root_len] == root:
+            if root != "" and root_len+1 < len(source) and source[:root_len] == root:
                 destination = destination[root_len+1:]
             if destination.endswith(".ipynb"):
                 notebook = nbformat.read(source, as_version=4)

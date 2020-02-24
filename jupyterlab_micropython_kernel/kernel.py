@@ -40,9 +40,6 @@ ap_write_bytes.add_argument('--binary', '-b', action='store_true')
 ap_write_bytes.add_argument('--verbose', '-v', action='store_true')
 ap_write_bytes.add_argument('stringtosend', type=str)
 
-# ap_terminate_running = argparse.ArgumentParser(prog="%terminate",
-#                                                add_help=False)
-
 ap_read_bytes = argparse.ArgumentParser(prog="%readbytes", add_help=False)
 ap_read_bytes.add_argument('--binary', '-b', action='store_true')
 
@@ -63,7 +60,15 @@ ap_upload_main = argparse.ArgumentParser(prog="%uploadmain",
                                                      "file system",
                                          add_help=False)
 ap_upload_main.add_argument('--source', help='source file(.py/.ipynb)', type=str)
-ap_upload_main.add_argument('--reboot', '-r', help='reboot after uploaded', default="True", action='store_true')
+ap_upload_main.add_argument('--reboot', '-r', help='soft reboot after uploaded', action='store_true')
+
+ap_upload_project = argparse.ArgumentParser(prog="%uploadproject",
+                                            description="upload all files in the specified folder to the"
+                                                        " microcontroller's file system"
+                                                        " while convert all .ipynb files to .py files")
+ap_upload_project.add_argument('--source', help='project source directory', type=str, default=".")
+ap_upload_project.add_argument('--reboot', '-r', help='soft reboot after uploaded', action='store_true')
+ap_upload_project.add_argument('--emptydevice', '-e', help='empty device before uploaded', action='store_true')
 
 ap_ls = argparse.ArgumentParser(prog="%ls", description="list directory of the microcontroller's file system",
                                 add_help=False)
@@ -288,7 +293,7 @@ class MicroPythonKernel(Kernel):
             self.sres("%rebootdevice\n    reboots device\n\n")
             self.sres(re.sub("usage: ", "", ap_ls.format_usage()))
             self.sres("    list files on the device\n\n")
-            self.sres(re.sub("usage: ","", ap_meminfo.format_usage()))
+            self.sres(re.sub("usage: ", "", ap_meminfo.format_usage()))
             self.sres("    show RAM size/used/free/use% info\n\n")
             self.sres(re.sub("usage: ", "", ap_read_bytes.format_usage()))
             self.sres("    does serial.read_all()\n\n")
@@ -303,8 +308,11 @@ class MicroPythonKernel(Kernel):
             self.sres("    remove directory on the device\n\n")
             self.sres(re.sub("usage: ", "", ap_send_to_file.format_usage()))
             self.sres("    send cell contents or file/direcectory to the device\n\n")
-            self.sres(re.sub("usage: ","", ap_upload_main.format_usage()))
+            self.sres(re.sub("usage: ", "", ap_upload_main.format_usage()))
             self.sres("    convert a .py or .ipynb file to a main.py and upload it\n\n")
+            self.sres((re.sub("usage:", "", ap_upload_project.format_usage())))
+            self.sres("    upload all files in the specified folder to the microcontroller's file system"
+                      " while convert all .ipynb files to .py files\n\n")
             self.sres(re.sub("usage: ", "", ap_fetch_file.format_usage()))
             self.sres("    fetch and save a file from the device\n\n")
 
@@ -508,37 +516,68 @@ class MicroPythonKernel(Kernel):
             apargs = parse_ap(ap_upload_main, percentstringargs[1:])
             if apargs:
                 source = apargs.source if apargs.source else "main.ipynb"
-                if os.path.isfile(source):
-                    if source.endswith(".ipynb"):
-                        notebook = nbformat.read(source, as_version=4)
-                        py_exporter = nbconvert.PythonExporter()
-
-                        output, resources = py_exporter.from_notebook_node(notebook)
-                        file_contents = output.replace("get_ipython().run_line_magic", "# %")
-                    elif source.endswith(".py"):
-                        file_contents = open(source, "r").read()
-                    else:
-                        self.sres("file must .py or .ipynb")
-                        return None
-                    self.sres(file_contents)
-                    self.dc.send_to_file("main.py",
-                                         mkdir=False,
-                                         append=False,
-                                         binary=False,
-                                         quiet=True,
-                                         file_contents= file_contents)
-                    if apargs.reboot:
-                        self.dc.send_reboot_message()
-                        self.dc.enter_paste_mode()
-                        return cell_contents.strip() and cell_contents or None
-                else:
-                    self.sres("'{0}' is not a file\n\n".format(source))
-                    self.sres(ap_upload_main.format_help())
+                if (not source.endswith(".py")) and (not source.endswith(".ipynb")):
+                    self.sres("you must choose a .py or .ipynb file")
+                    return None
+                self.upload_file(source)
+                if apargs.reboot:
+                    self.dc.send_reboot_message()
+                    self.dc.enter_paste_mode()
+                    return cell_contents.strip() and cell_contents or None
             else:
                 self.sres(ap_upload_main.format_help())
             return None
+        if percentcommand == ap_upload_project.prog:
+            apargs = parse_ap(ap_upload_project, percentstringargs[1:])
+            if apargs:
+                if not os.path.isdir(apargs.source):
+                    self.sres("source: {0} is not a directory, you can upload main.py by '%upload main --source '"
+                              .format(apargs.source))
+                    self.sres(ap_upload_project.format_help())
+                    return None
+                if apargs.emptydevice:
+                    self.dc.remove_dir(".")
+                self.upload_dir(apargs.source)
+                if apargs.reboot:
+                    self.dc.send_reboot_message()
+                    self.dc.enter_paste_mode()
+                    return cell_contents.strip() and cell_contents or None
+            else:
+                self.sres(ap_upload_project.format_help())
+                self.sres(ap_upload_project.format_help())
+            return None
         self.sres("Unrecognized percentline {}\n".format([percent_line]), 31)
         return cell_contents
+
+    def upload_file(self, source, mkdir=False, append=False, binary=False, quiet=True, root=""):
+        if os.path.exists(source) and os.path.isfile(source):
+            destination = source
+            root_len = len(root)
+            if root_len+1 < len(source) and source[:root_len] == root:
+                destination = destination[root_len+1:]
+            if destination.endswith(".ipynb"):
+                notebook = nbformat.read(source, as_version=4)
+                py_exporter = nbconvert.PythonExporter()
+
+                output, resources = py_exporter.from_notebook_node(notebook)
+                file_contents = output.replace("get_ipython().run_line_magic", "# %")
+                destination = destination.replace(".ipynb", ".py")
+            else:
+                file_contents = open(source, "r").read()
+            self.sres("\n\nuploading '{0}'\n".format(destination))
+            self.dc.send_to_file(destination, mkdir=mkdir, append=append, binary=binary,
+                                 quiet=quiet, file_contents=file_contents)
+        else:
+            self.sres("'{0}' is not a file\n\n".format(source))
+
+    def upload_dir(self, source):
+        if os.path.exists(source) and os.path.isdir(source):
+            for root, dirs, files in os.walk(source, topdown=False):
+                files = [f for f in files if not f[0] == '.']
+                for f in files:
+                    self.upload_file(os.path.join(root, f), mkdir=True, binary=f.endswith(".mpy"), root=source)
+        else:
+            self.sres("'{0}' is not a directory\n\n".format(source))
 
     def run_normal_cell(self, cell_contents, bsuppressendcode):
         cmd_lines = cell_contents.splitlines(True)

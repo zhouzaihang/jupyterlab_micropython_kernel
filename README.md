@@ -60,8 +60,18 @@ list files on the device
 eg:
 ```jupyter
 %ls
+```
+
+eg: list directory recursion
+```jupyter
+%ls -r
+```
+
+eg: list specific directory
+```jupyter
 %ls lib
 ```
+
 
 ### %remove filename
 
@@ -98,11 +108,46 @@ eg:
 
 convert a .py or .ipynb file to a main.py and upload it
 
-eg:
+eg upload main.py or main.ipynb:
 ```jupyter
 %uploadmain
+```
 
-%uploadmain --source dht11.ipynb
+eg upload specific path main.py or main.ipynb:
+```jupyter
+%uploadmain --source lib/main.ipynb
+```
+
+eg convert and upload specific path *.py or *.ipynb as main.py:
+```jupyter
+%uploadmain --source lib/dht11.ipynb
+```
+
+eg upload and soft reboot:
+```jupyter
+%uploadmain --source lib/main.ipynb -r
+```
+
+### %uploadproject [-h] [--source SOURCE] [--reboot] [--emptydevice]
+
+Upload all files in the specified folder to the microcontroller's file system while convert all .ipynb files to .py files
+
+eg. upload specific directory as project root directory
+
+```jupyter
+%uploadproject --source dht11
+```
+
+eg. reboot after uploaded
+
+```jupyter
+%uploadproject --source dht11 -r
+```
+
+eg. remove all file in the divice before upload
+
+```jupyter
+%uploadproject --source dht11 -e
 ```
 
 ### %meminfo
@@ -121,6 +166,7 @@ RAM          116.188 KB   7.859 KB   108.328 KB    6.8 %
 1. interrupt endless code in jupyterlab:
     
     If you run endless loop code in Jupyter Lab, you can abort the run through the Interrupt Kernel.(`menu->Kernel->Interrupt Kernel` or `Keyboard shortcut: (i, i)`)
+    
     eg:
     
     ```jupyter
@@ -133,7 +179,7 @@ RAM          116.188 KB   7.859 KB   108.328 KB    6.8 %
     click `menu->Kernel->Interrupt Kernel` or press on `Keyboard shortcut: (i, i)`
 
 ## TODO
-1. Add %uploadproject: convert all .ipynb to .py and upload to device.
+1. ~~Add %uploadproject: convert all .ipynb to .py and upload to device.~~
 1. Writing user manuals.
 1. Make some demo.
 1. ~~Add %meminfo: Shows RAM size/used/free/use% info.~~

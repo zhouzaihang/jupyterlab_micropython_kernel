@@ -321,7 +321,8 @@ class DeviceConnector:
                         self.sres("[Timed out waiting for recognizable response]\n", 31)
                         return False
                     # str holding position to prove it's alive
-                    self.sres("\n[Waiting for the program to finish]\n\n")
+                    self.sres("")
+                    # self.sres("\n[Waiting for the program to finish]\n\n")
 
                 elif receive_line == b'Type "help()" for more information.\r\n':
                     reboot_detected = True

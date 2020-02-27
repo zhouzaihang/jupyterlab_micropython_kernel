@@ -208,7 +208,13 @@ eg. Add local text file content to a text file that already exists on the device
 eg. send a local binary file (`ModbusSlave/const.mpy`) to the microcontroller's file system as `const.mpy`:
 
 ```jupyter
-%sendfile const.mpy --source ModbusSlave/const.mpy -x
+%sendfile const.mpy --source ModbusSlave/const.mpy -b
+```
+
+eg. send a local binary file (`ModbusSlave/const.mpy`) to the microcontroller's file system as `const.mpy` and execute it:
+
+```jupyter
+%sendfile const.mpy --source ModbusSlave/const.mpy -b -x
 ```
 
 ## Q&A

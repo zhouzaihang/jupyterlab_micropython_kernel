@@ -575,9 +575,9 @@ class MicroPythonKernel(Kernel):
         if os.path.exists(source) and os.path.isdir(source):
             for root, dirs, files in os.walk(source, topdown=False):
                 if onlypy:
-                    files = [f for f in files if (not f[0] == '.') and (f.endswith('.py') or f.endswith('.ipynb'))]
+                    files = [f for f in files if (not f[0] == '.' ) and ("/." not in root) and (f.endswith('.py') or f.endswith('.ipynb'))]
                 else:
-                    files = [f for f in files if not f[0] == '.']
+                    files = [f for f in files if (not f[0] == '.') and ("/." not in root)]
                 for f in files:
                     self.upload_file(os.path.join(root, f), mkdir=True, binary=f.endswith(".mpy"), root=source)
         else:

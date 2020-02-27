@@ -39,7 +39,7 @@ jupyter kernelspec list
 
 connect serial connection
 
-eg:
+eg.
 ```jupyter
 %serialconnect --port=/dev/ttyUSB0 --baudrate=115200
 ```
@@ -48,7 +48,7 @@ eg:
 
 disconnects from web/serial connection
 
-eg:
+eg.
 ```jupyter
 %disconnect
 ```
@@ -57,17 +57,17 @@ eg:
 
 list files on the device
 
-eg:
+eg.
 ```jupyter
 %ls
 ```
 
-eg: list directory recursion
+eg. list directory recursion:
 ```jupyter
 %ls -r
 ```
 
-eg: list specific directory
+eg. list specific directory:
 ```jupyter
 %ls lib
 ```
@@ -77,7 +77,7 @@ eg: list specific directory
 
 remove file on the device
 
-eg:
+eg.
 ```jupyter
 %remove main.py
 ```
@@ -86,7 +86,7 @@ eg:
 
 remove directory on the device
 
-eg:
+eg.
 ```jupyter
 %rmdir lib
 ```
@@ -99,7 +99,7 @@ list all magic commands
 
 soft reboots device
 
-eg:
+eg.
 ```jupyter
 %rebootdevice
 ```
@@ -108,22 +108,22 @@ eg:
 
 convert a .py or .ipynb file to a main.py and upload it
 
-eg upload main.py or main.ipynb:
+eg. upload main.py or main.ipynb:
 ```jupyter
 %uploadmain
 ```
 
-eg upload specific path main.py or main.ipynb:
+eg. upload specific path main.py or main.ipynb:
 ```jupyter
 %uploadmain --source lib/main.ipynb
 ```
 
-eg convert and upload specific path *.py or *.ipynb as main.py:
+eg. convert and upload specific path *.py or *.ipynb as main.py:
 ```jupyter
 %uploadmain --source lib/dht11.ipynb
 ```
 
-eg upload and soft reboot:
+eg. upload and soft reboot:
 ```jupyter
 %uploadmain --source lib/main.ipynb -r
 ```
@@ -132,25 +132,25 @@ eg upload and soft reboot:
 
 Upload all files in the specified folder to the microcontroller's file system while convert all .ipynb files to .py files
 
-eg. upload specific directory as project root directory
+eg. upload specific directory as project root directory:
 
 ```jupyter
 %uploadproject --source dht11
 ```
 
-eg. reboot after uploaded
+eg. reboot after uploaded:
 
 ```jupyter
 %uploadproject --source dht11 -r
 ```
 
-eg. remove all file in the divice before upload
+eg. remove all file in the divice before upload:
 
 ```jupyter
 %uploadproject --source dht11 -e
 ```
 
-eg. only upload .py or .ipynb files to the device
+eg. only upload .py or .ipynb files to the device:
 
 ```jupyter
 %uploadproject --source dht11 -r -e -py
@@ -160,13 +160,57 @@ eg. only upload .py or .ipynb files to the device
     
 show RAM size/used/free/use% info
 
-eg:
+eg.
 ```jupyter
 %meminfo
 
 Memmory         Size        Used       Avail        Use%    
 RAM          116.188 KB   7.859 KB   108.328 KB    6.8 %
 ```
+
+### %sendfile [destinationfilename] [--append] [--mkdir] [--binary] [--execute] [--source [SOURCE]] [--quiet] [--QUIET]
+
+send a file to the microcontroller's file system
+
+positional arguments:
+- destinationfilename
+
+optional arguments:
+- --append, -a
+- --mkdir, -d
+- --binary, -b
+- --execute, -x
+- --source [SOURCE]    source file
+- --quiet, -q
+- --QUIET, -Q
+
+eg. send a local text file (`ModbusSlave/const.py`) to the microcontroller's file system as `const.py`:
+
+```jupyter
+%sendfile const.py --source ModbusSlave/const.py
+```
+
+eg.  send a local text file (`ModbusSlave/const.py`) to the microcontroller's file system as `ModbusSlave/const.py`
+
+> When you need to create a new folder, you need to use the -d parameter. 
+> If the `XXX` folder is not on your device and your command does not have a `-d` parameter, you would get a error.
+
+```jupyter
+%sendfile ModbusSlave/const.py --source ModbusSlave/const.py -d
+```
+
+eg. Add local text file content to a text file that already exists on the device:
+
+```jupyter
+%sendfile const.py --source ModbusSlave/const.py -a
+```
+
+eg. send a local binary file (`ModbusSlave/const.mpy`) to the microcontroller's file system as `const.mpy`:
+
+```jupyter
+%sendfile const.mpy --source ModbusSlave/const.mpy -x
+```
+
 ## Q&A
 
 1. interrupt endless code in jupyterlab:

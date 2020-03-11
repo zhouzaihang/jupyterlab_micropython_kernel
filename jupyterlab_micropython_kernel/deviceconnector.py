@@ -660,6 +660,15 @@ class DeviceConnector:
             self.working_websocket.send(b"\x02\r")  # exit the paste mode with ctrl-B
             self.working_websocket.send(b"\x04\r")  # soft reboot code
 
+    def send_hard_reset_message(self):
+        self.sres("Resetting Board...\n")
+        working_device_write = self.working_serial.write if self.working_serial else self.working_websocket.send
+        working_device_write(b"import machine\r\n")
+        working_device_write(b"machine.reset()\r\n")
+        working_device_write(b'\r\x04')
+        self.receive_stream(True)
+        return None
+
     def write_line(self, line):
         if self.working_serial:
             self.working_serial.write(line.encode("utf8"))

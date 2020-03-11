@@ -292,6 +292,7 @@ class MicroPythonKernel(Kernel):
             self.sres("    disconnects from web/serial connection\n\n")
 
             self.sres("%rebootdevice\n    reboots device\n\n")
+            self.sres("%hardreset\n    A hard reset is the same as performing a power cycle to the board. \n\n")
             self.sres(re.sub("usage: ", "", ap_ls.format_usage()))
             self.sres("    list files on the device\n\n")
             self.sres(re.sub("usage: ", "", ap_meminfo.format_usage()))
@@ -379,8 +380,13 @@ class MicroPythonKernel(Kernel):
             self.dc.enter_paste_mode()
             return cell_contents.strip() and cell_contents or None
 
+        if percentcommand == "%hardreset":
+            self.dc.send_hard_reset_message()
+            self.dc.enter_paste_mode()
+            return cell_contents.strip() and cell_contents or None
+
         if percentcommand == "%reboot":
-            self.sres("Did you mean %rebootdevice?\n", 31)
+            self.sres("Did you mean %rebootdevice or %hardreset?\n", 31)
             return None
 
         if percentcommand == "%%writetofile" or percentcommand == "%writefile":

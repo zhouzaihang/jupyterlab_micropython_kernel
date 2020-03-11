@@ -20,6 +20,7 @@ ap_serial_connect.add_argument('--raw', help='Just open connection', action='sto
 ap_serial_connect.add_argument('--port', type=str, default=0)
 ap_serial_connect.add_argument('--baud', type=int, default=115200)
 ap_serial_connect.add_argument('--verbose', action='store_true')
+ap_serial_connect.add_argument('--clear', '-c', help='soft reboot after connected', action='store_true')
 
 ap_socket_connect = argparse.ArgumentParser(prog="%socketconnect", add_help=False)
 ap_socket_connect.add_argument('--raw', help='Just open connection', action='store_true')
@@ -177,7 +178,10 @@ class MicroPythonKernel(Kernel):
             if self.dc.working_serial:
                 if not apargs.raw:
                     if self.dc.enter_paste_mode(verbose=apargs.verbose):
-                        self.sres_system("Ready.\n")
+                        if apargs.clear:
+                            self.dc.send_reboot_message()
+                            self.dc.enter_paste_mode()
+                        self.sres_system("\nReady.\n")
                     else:
                         self.sres("Disconnecting [paste mode not working]\n", 31)
                         self.dc.disconnect(verbose=apargs.verbose)

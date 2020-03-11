@@ -60,14 +60,14 @@ ap_upload_main = argparse.ArgumentParser(prog="%uploadmain",
                                                      "file system",
                                          add_help=False)
 ap_upload_main.add_argument('--source', help='source file(.py/.ipynb)', type=str)
-ap_upload_main.add_argument('--reboot', '-r', help='soft reboot after uploaded', action='store_true')
+ap_upload_main.add_argument('--reboot', '-r', help='hard reset after uploaded', action='store_true')
 
 ap_upload_project = argparse.ArgumentParser(prog="%uploadproject",
                                             description="upload all files in the specified folder to the"
                                                         " microcontroller's file system"
                                                         " while convert all .ipynb files to .py files")
 ap_upload_project.add_argument('--source', help='project source directory', type=str, default=".")
-ap_upload_project.add_argument('--reboot', '-r', help='soft reboot after uploaded', action='store_true')
+ap_upload_project.add_argument('--reboot', '-r', help='hard reset after uploaded', action='store_true')
 ap_upload_project.add_argument('--emptydevice', '-e', help='empty device before uploaded', action='store_true')
 ap_upload_project.add_argument('--onlypy', '-py', help='Only upload all .py and .ipynb files', action='store_true')
 
@@ -480,6 +480,7 @@ class MicroPythonKernel(Kernel):
 
                 def send_to_file(filename, contents):
                     self.dc.send_to_file(filename, apargs.mkdir, apargs.append, apargs.binary, apargs.quiet, contents)
+                    self.dc.send_hard_reset_message()
 
                 if apargs.source == "<<cellcontents>>":
                     file_contents = cell_contents
@@ -528,7 +529,7 @@ class MicroPythonKernel(Kernel):
                     return None
                 self.upload_file(source)
                 if apargs.reboot:
-                    self.dc.send_reboot_message()
+                    self.dc.send_hard_reset_message()
                     self.dc.enter_paste_mode()
                     return cell_contents.strip() and cell_contents or None
             else:
@@ -546,7 +547,7 @@ class MicroPythonKernel(Kernel):
                     self.dc.remove_dir(".")
                 self.upload_dir(apargs.source, apargs.onlypy)
                 if apargs.reboot:
-                    self.dc.send_reboot_message()
+                    self.dc.send_hard_reset_message()
                     self.dc.enter_paste_mode()
                     return cell_contents.strip() and cell_contents or None
             else:

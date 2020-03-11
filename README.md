@@ -44,6 +44,11 @@ eg.
 %serialconnect --port=/dev/ttyUSB0 --baudrate=115200
 ```
 
+eg. clears the state of the MicroPython virtual machine after connected
+```jupyter
+%serialconnect --port=/dev/ttyUSB0 --baudrate=115200 -c
+```
+
 ### %disconnect [--raw]
 
 disconnects from web/serial connection

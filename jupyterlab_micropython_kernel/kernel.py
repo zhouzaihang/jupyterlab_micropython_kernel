@@ -20,7 +20,9 @@ ap_serial_connect.add_argument('--raw', help='Just open connection', action='sto
 ap_serial_connect.add_argument('--port', type=str, default=0)
 ap_serial_connect.add_argument('--baud', type=int, default=115200)
 ap_serial_connect.add_argument('--verbose', action='store_true')
-ap_serial_connect.add_argument('--clear', '-c', help='soft reboot after connected', action='store_true')
+ap_serial_connect.add_argument('--clear', '-c',
+                               help='clears the state of the MicroPython virtual machine after connected',
+                               action='store_true')
 
 ap_socket_connect = argparse.ArgumentParser(prog="%socketconnect", add_help=False)
 ap_socket_connect.add_argument('--raw', help='Just open connection', action='store_true')

@@ -179,6 +179,10 @@ class MicroPythonKernel(Kernel):
             self.dc.serial_connect(apargs.port, apargs.baud, apargs.verbose)
             if self.dc.working_serial:
                 if not apargs.raw:
+                    self.sres_system("\nKill off running programs...\n")
+                    self.dc.write_bytes(b'\x03')
+                    self.dc.write_bytes(b'\x03')
+                    self.dc.write_bytes(b'\x03')
                     if self.dc.enter_paste_mode(verbose=apargs.verbose):
                         if apargs.clear:
                             self.dc.send_reboot_message()

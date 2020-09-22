@@ -534,7 +534,7 @@ class DeviceConnector:
         total_mem_s = "{:.3f} KB".format(total_mem)
         used_mem_s = "{:.3f} KB".format(used_mem)
         free_mem_s = "{:.3f} KB".format(free_mem)
-        self.sres("{0:12}{1:^12}{2:^12}{3:^12}{4:^12}\n".format(*['Memmory','Size', 'Used','Avail','Use%']))
+        self.sres("{0:12}{1:^12}{2:^12}{3:^12}{4:^12}\n".format(*['Memmory', 'Size', 'Used', 'Avail', 'Use%']))
         self.sres('{0:12}{1:^12}{2:^12}{3:^12}{4:>8}\n'.format('RAM', total_mem_s,
                                                                used_mem_s, free_mem_s,
                                                                "{:.1f} %".format((used_mem / total_mem) * 100)))
@@ -585,10 +585,16 @@ class DeviceConnector:
         if self.working_serial or self.working_websocket:
             working_device_write = self.working_serial.write if self.working_serial else self.working_websocket.send
 
-            time.sleep(0.2)  # try to give a moment to connect before issuing the Ctrl-C
-            working_device_write(b'\x03')  # ctrl-C: kill off running programs
-            time.sleep(0.1)
-            msg = self.working_serial_readall()
+            msg = b'      '
+            i = 0
+            while (i < 10) or (msg[-6:] != b'\r\n>>> '):
+                time.sleep(0.2)  # try to give a moment to connect before issuing the Ctrl-C
+                working_device_write(b'\x03')  # ctrl-C: kill off running programs
+                working_device_write(b'\x03')  # ctrl-C: kill off running programs
+                working_device_write(b'\x03')  # ctrl-C: kill off running programs
+                time.sleep(0.1)
+                msg = self.working_serial_readall()
+                i += 1
             if msg[-6:] == b'\r\n>>> ':
                 if verbose:
                     self.sres('repl is in normal command mode\n')

@@ -587,7 +587,7 @@ class DeviceConnector:
 
             msg = b'      '
             i = 0
-            while (i < 10) and (msg[-6:] != b'\r\n>>> '):
+            while (i < 10) or (msg[-6:] != b'\r\n>>> '):
                 time.sleep(0.2)  # try to give a moment to connect before issuing the Ctrl-C
                 working_device_write(b'\x03')  # ctrl-C: kill off running programs
                 working_device_write(b'\x03')  # ctrl-C: kill off running programs

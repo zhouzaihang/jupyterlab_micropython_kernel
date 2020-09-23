@@ -7,7 +7,7 @@ with (project / 'README.md').open(encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name="jupyterlab_micropython_kernel",
-      version="0.0.6",
+      version="0.0.7",
       description=long_description,
       author='ZhouZaihang, Julian Todd, Tony DiCola',
       author_email='zaihang822@gamil.com',
